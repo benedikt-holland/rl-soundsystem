@@ -1,5 +1,7 @@
 import pyaudiowpatch as pyaudio
 import wave
+import multiprocessing as mp
+
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
@@ -65,5 +67,10 @@ def save_recording(recording, config, filename):
 
 
 if __name__ == "__main__":
-    recording, config = get_recording(5, False)
-    save_recording(recording, config, "test.wav")
+    record_length= 15
+    with mp.Pool(2) as p:
+        outputs = p.starmap(get_recording, [(record_length, False), (record_length, True)])
+    input, config_in = tuple(outputs[0])
+    output, config_out = tuple(outputs[1])
+    save_recording(input, config_in, "input.wav")
+    save_recording(output, config_out, "output.wav")
