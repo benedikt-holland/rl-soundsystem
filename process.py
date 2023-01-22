@@ -7,6 +7,15 @@ import noisereduce as nr
 import wavfile
 import matplotlib.pyplot as plt
 
+
+def normalize_subtract(data, noise):
+    data_norm = np.linalg.norm(data)
+    noise_norm = np.linalg.norm(noise)
+    data /= data_norm
+    noise /= noise_norm
+    return data - noise
+
+
 if __name__ == '__main__':
     input_wave = wave.open("input.wav", "r")
     output_wave = wave.open("output.wav", "r")
@@ -17,16 +26,9 @@ if __name__ == '__main__':
     input = np.frombuffer(input_raw, 'int16')
     output = np.frombuffer(output_raw, 'int16')
     output = np.reshape(output, (-1, 2))
-    #wf.write("output_edit.wav", fs_out, output)
     output = output[:, 0]
-    output_norm = np.linalg.norm(output)
-    input_norm = np.linalg.norm(input)
-    output = output / output_norm
-    input = input / input_norm
-    result = input - output
-    plt.plot(input)
-    plt.plot(result, alpha=0.5)
-    plt.show()
+    n_max = 300000
+    result = nr.reduce_noise(input[:n_max], sr=fs_in ,y_noise=output[:n_max], n_jobs=-1)
     wf.write("input_edit.wav", fs_in, result.astype("int16"))
     
     
