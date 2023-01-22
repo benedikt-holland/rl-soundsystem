@@ -5,10 +5,28 @@ from sklearn.preprocessing import normalize
 import scipy.io.wavfile as wf
 import noisereduce as nr
 import wavfile
+import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    input, rate_in, bits_in = wavfile.read("input.wav")
-    output, rate_out, bits_out = wavfile.read("output.wav")
-    result = nr.reduce_noise(np.array(input), sr=rate_in, y_noise=np.array(output), stationary=True, tmp_folder="./tmp")
-    wavfile.write("input_edit.wav", result, rate_in, bits_in)
+    input_wave = wave.open("input.wav", "r")
+    output_wave = wave.open("output.wav", "r")
+    fs_in = input_wave.getframerate()
+    fs_out = output_wave.getframerate()
+    input_raw = input_wave.readframes(-1)
+    output_raw = output_wave.readframes(-1)
+    input = np.frombuffer(input_raw, 'int16')
+    output = np.frombuffer(output_raw, 'int16')
+    output = np.reshape(output, (-1, 2))
+    #wf.write("output_edit.wav", fs_out, output)
+    output = output[:, 0]
+    output_norm = np.linalg.norm(output)
+    input_norm = np.linalg.norm(input)
+    output = output / output_norm
+    input = input / input_norm
+    result = input - output
+    plt.plot(input)
+    plt.plot(result, alpha=0.5)
+    plt.show()
+    wf.write("input_edit.wav", fs_in, result.astype("int16"))
+    
     
